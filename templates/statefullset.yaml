@@ -49,13 +49,21 @@ spec:
             - sh
             - -c
             - |
+              set -ex
               mkdir /certs/test
               cp -Lr /tmp-certs/* /certs
+            {{- if .Values.customTLS.CA.enabled }}
+              cp -Lr /tmp-certs-ca/* /certs
+            {{- end }}
           volumeMounts:
             - name: certs
               mountPath: "/certs"
             - name: secret-certs
               mountPath: "/tmp-certs"
+            {{- if .Values.customTLS.CA.enabled }}
+            - name: secret-certs-ca
+              mountPath: "/tmp-certs-ca"
+            {{- end }}
       {{- end }}
       {{- if .Values.volumePermissions.enabled }}
         - name: volume-permissions
@@ -232,6 +240,11 @@ spec:
         - name: secret-certs
           secret:
             secretName: {{.Values.customTLS.secret}}
+        {{- if .Values.customTLS.CA.enabled }}
+        - name: secret-certs-ca
+          secret:
+            secretName: {{.Values.customTLS.CA.secret}}
+        {{- end }}
         - name: certs
           emptyDir:
             medium: Memory
